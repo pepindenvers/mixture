@@ -64,10 +64,7 @@ if st.session_state.etapas:
             st.pyplot(fig)
 
         if st.button("Destilar"):
-            st.session_state.destilando = True
-
-        if st.session_state.get("destilando", False):
-            # Mostrar GIF de destilación
+            # Mostrar el GIF de destilación cuando se hace clic en el botón
             file_ = open("destila.gif", "rb")
             contents = file_.read()
             data_url = base64.b64encode(contents).decode("utf-8")
@@ -77,28 +74,19 @@ if st.session_state.etapas:
                 unsafe_allow_html=True,
             )
 
-            # Mostrar tabla resumen de etapas previas
-            tabla = df[df["Etanol porcentaje"].isin(st.session_state.etapas)]
-            columnas_tabla = ["Etanol porcentaje"]
-            if "Temperatura" in df.columns:
-                columnas_tabla.append("Temperatura")
-            elif "EBULLICION TEMPERATURA" in df.columns:
-                columnas_tabla.append("EBULLICION TEMPERATURA")
-            for col in ["Xetoh_liquido", "Xetoh_vapor"]:
-                if col in df.columns:
-                    columnas_tabla.append(col)
-            st.write("🔬 Resultados de Destilación")
-            st.dataframe(tabla[columnas_tabla].reset_index(drop=True))
-
-            # Sección interactiva de análisis de mezcla
+            # Ahora permitir seleccionar una mezcla de etanol
             st.subheader("🔍 Seleccionar mezcla para analizar")
             porcentajes_disponibles = sorted(df["Etanol porcentaje"].dropna().unique())
             mezcla_seleccionada = st.selectbox("Selecciona el porcentaje de etanol:", porcentajes_disponibles)
 
+            # Filtrar los datos para la mezcla seleccionada
             datos_mezcla = df[df["Etanol porcentaje"] == mezcla_seleccionada]
+            
+            # Verificar si existen las columnas necesarias
             columna_ir = [col for col in df.columns if "refrac" in col.lower()]
             columna_temp = [col for col in df.columns if "temp" in col.lower()]
 
+            # Mostrar los datos de la mezcla seleccionada
             if not datos_mezcla.empty:
                 if columna_ir:
                     st.write(f"📌 **Índice de refracción:** {datos_mezcla[columna_ir[0]].values[0]}")
@@ -107,5 +95,6 @@ if st.session_state.etapas:
             else:
                 st.warning("No se encontraron datos para ese porcentaje.")
 
+           
 
 
