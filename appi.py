@@ -11,13 +11,13 @@ def cargar_datos():
     df = pd.read_csv("BINARIA.csv")
     df.columns = df.columns.str.strip()  # Eliminar espacios extra
     df["Etanol porcentaje"] = pd.to_numeric(df["Etanol porcentaje"], errors='coerce')
-    df = df.rename(columns={
-        "nd indice de refraccion": "indice de refraccion",
-        "Temperatura": "EBULLICION TEMPERATURA"
-    })
     return df
 
 df = cargar_datos()
+
+# Mostrar columnas reales para diagnóstico
+st.write("🧾 Columnas detectadas en el archivo CSV:")
+st.write(df.columns.tolist())
 
 st.title("🧪 Simulador de Destilación Etanol-Agua")
 st.write("Simulador interactivo para la destilación de mezclas etanol-agua usando datos reales de índice de refracción y fracciones molares.")
@@ -43,20 +43,25 @@ if st.button("Iniciar medición"):
 if st.session_state.etapas:
     if st.button("Continuar medición"):
         mediciones = df[df["Etanol porcentaje"] == float(porc_inicial)]
-        if not mediciones.empty:
+
+        columna_ir = [col for col in mediciones.columns if "refrac" in col.lower()]
+        if not mediciones.empty and columna_ir:
             st.success("Índice de refracción encontrado:")
-            st.write(mediciones[["indice de refraccion"]])
+            st.write(mediciones[[columna_ir[0]]])
         else:
-            st.error("Datos no encontrados para ese porcentaje.")
+            st.error("Datos no encontrados o columna de índice de refracción no localizada.")
 
     if st.button("Finalizar"):
         st.subheader("📈 Gráfica de Calibración")
-        fig, ax = plt.subplots()
-        ax.plot(df["Etanol porcentaje"], df["indice de refraccion"], marker="o")
-        ax.set_xlabel("Porcentaje de Etanol (%)")
-        ax.set_ylabel("Índice de Refracción")
-        ax.set_title("Curva de Calibración")
-        st.pyplot(fig)
+
+        columna_ir = [col for col in df.columns if "refrac" in col.lower()]
+        if columna_ir:
+            fig, ax = plt.subplots()
+            ax.plot(df["Etanol porcentaje"], df[columna_ir[0]], marker="o")
+            ax.set_xlabel("Porcentaje de Etanol (%)")
+            ax.set_ylabel("Índice de Refracción")
+            ax.set_title("Curva de Calibración")
+            st.pyplot(fig)
 
         if st.button("Destilar"):
             # Mostrar GIF de destilación
@@ -71,7 +76,11 @@ if st.session_state.etapas:
 
             # Mostrar tabla resumen de etapas previas
             tabla = df[df["Etanol porcentaje"].isin(st.session_state.etapas)]
-            columnas_tabla = ["Etanol porcentaje", "EBULLICION TEMPERATURA"]
+            columnas_tabla = ["Etanol porcentaje"]
+            if "Temperatura" in df.columns:
+                columnas_tabla.append("Temperatura")
+            elif "EBULLICION TEMPERATURA" in df.columns:
+                columnas_tabla.append("EBULLICION TEMPERATURA")
             for col in ["Xetoh_liquido", "Xetoh_vapor"]:
                 if col in df.columns:
                     columnas_tabla.append(col)
@@ -84,12 +93,14 @@ if st.session_state.etapas:
             mezcla_seleccionada = st.selectbox("Selecciona el porcentaje de etanol:", porcentajes_disponibles)
 
             datos_mezcla = df[df["Etanol porcentaje"] == mezcla_seleccionada]
+            columna_ir = [col for col in df.columns if "refrac" in col.lower()]
+            columna_temp = [col for col in df.columns if "temp" in col.lower()]
 
             if not datos_mezcla.empty:
-                indice = datos_mezcla["indice de refraccion"].values[0]
-                temp = datos_mezcla["EBULLICION TEMPERATURA"].values[0]
-                st.write(f"📌 **Índice de refracción:** {indice}")
-                st.write(f"🌡️ **Temperatura de ebullición:** {temp} °C")
+                if columna_ir:
+                    st.write(f"📌 **Índice de refracción:** {datos_mezcla[columna_ir[0]].values[0]}")
+                if columna_temp:
+                    st.write(f"🌡️ **Temperatura de ebullición:** {datos_mezcla[columna_temp[0]].values[0]} °C")
             else:
                 st.warning("No se encontraron datos para ese porcentaje.")
 
