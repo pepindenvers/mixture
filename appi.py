@@ -38,16 +38,16 @@ if st.button("Iniciar medición"):
 # Mostrar datos medidos
 if st.session_state.etapas:
     if st.button("Continuar medición"):
-        mediciones = df[df["Porcentaje"] == porc_inicial]
+        mediciones = df[df["Etanol porcentaje"] == porc_inicial]
         if not mediciones.empty:
             st.success("Índice de refracción encontrado:")
-            st.write(mediciones[["Indice_Refraccion"]])
+            st.write(mediciones[["nd indice de refraccion"]])
         else:
             st.error("Datos no encontrados para ese porcentaje.")
     if st.button("Finalizar"):
         st.subheader("📈 Gráfica de Calibración")
         fig, ax = plt.subplots()
-        ax.plot(df["Porcentaje"], df["Indice_Refraccion"], marker="o")
+        ax.plot(df["Etanol porcentaje"], df["nd indice de refraccion"], marker="o")
         ax.set_xlabel("Porcentaje de Etanol (%)")
         ax.set_ylabel("Índice de Refracción")
         ax.set_title("Curva de Calibración")
