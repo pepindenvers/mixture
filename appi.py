@@ -53,4 +53,5 @@ if st.session_state.etapas:
     if st.button("Finalizar"):
         st.subheader("📈 Gráfica de Calibración")
         fig, ax = plt.subplots()
-        ax.plot(df["Etanol porcentaje"], df["indice de re]()
+       ax.plot(df["Etanol porcentaje"], df["indice de refraccion"], marker="o")
+
