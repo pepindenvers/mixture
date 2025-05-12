@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from io import BytesIO
 from PIL import Image
 import base64
 
@@ -12,7 +11,11 @@ st.set_page_config(page_title="Simulador Destilación Etanol-Agua", layout="cent
 def cargar_datos():
     df = pd.read_csv("BINARIA.csv")
     df.columns = df.columns.str.strip()  # Eliminar espacios en blanco
-    df["Etanol porcentaje"] = pd.to_numeric(df["Etanol porcentaje"], errors='coerce')  # Convertir a numérico
+    df["Etanol porcentaje"] = pd.to_numeric(df["Etanol porcentaje"], errors='coerce')
+    df = df.rename(columns={
+        "nd indice de refraccion": "indice de refraccion",
+        "Temperatura": "EBULLICION TEMPERATURA"
+    })
     return df
 
 df = cargar_datos()
@@ -40,34 +43,14 @@ if st.button("Iniciar medición"):
 # Mostrar datos medidos
 if st.session_state.etapas:
     if st.button("Continuar medición"):
-        # Verificar si hay datos para el porcentaje seleccionado
         mediciones = df[df["Etanol porcentaje"] == float(porc_inicial)]
         if not mediciones.empty:
             st.success("Índice de refracción encontrado:")
-            st.write(mediciones[["nd indice de refraccion"]])
+            st.write(mediciones[["indice de refraccion"]])
         else:
             st.error("Datos no encontrados para ese porcentaje.")
     
     if st.button("Finalizar"):
         st.subheader("📈 Gráfica de Calibración")
         fig, ax = plt.subplots()
-        ax.plot(df["Etanol porcentaje"], df["nd indice de refraccion"], marker="o")
-        ax.set_xlabel("Porcentaje de Etanol (%)")
-        ax.set_ylabel("Índice de Refracción")
-        ax.set_title("Curva de Calibración")
-        st.pyplot(fig)
-
-        if st.button("Destilar"):
-            file_ = open("destila.gif", "rb")
-            contents = file_.read()
-            data_url = base64.b64encode(contents).decode("utf-8")
-            file_.close()
-            st.markdown(
-                f'<img src="data:image/gif;base64,{data_url}" alt="destilacion" style="width: 300px;">',
-                unsafe_allow_html=True,
-            )
-
-            tabla = df[df["Etanol porcentaje"].isin(st.session_state.etapas)]
-            tabla = tabla[["Etanol porcentaje", "Temperatura", "Xetoh_liquido", "Xetoh_vapor"]]
-            st.write("🔬 Resultados de Destilación")
-            st.dataframe(tabla.reset_index(drop=True))
+        ax.plot(df["Etanol porcentaje"], df["indice de re]()
