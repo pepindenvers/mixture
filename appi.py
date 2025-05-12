@@ -64,6 +64,9 @@ if st.session_state.etapas:
             st.pyplot(fig)
 
         if st.button("Destilar"):
+            st.session_state.destilando = True
+
+        if st.session_state.get("destilando", False):
             # Mostrar GIF de destilación
             file_ = open("destila.gif", "rb")
             contents = file_.read()
