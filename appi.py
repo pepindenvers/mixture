@@ -11,6 +11,8 @@ st.set_page_config(page_title="Simulador Destilación Etanol-Agua", layout="cent
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("BINARIA.csv")
+    df.columns = df.columns.str.strip()  # Eliminar espacios en blanco
+    df["Etanol porcentaje"] = pd.to_numeric(df["Etanol porcentaje"], errors='coerce')  # Convertir a numérico
     return df
 
 df = cargar_datos()
@@ -38,12 +40,14 @@ if st.button("Iniciar medición"):
 # Mostrar datos medidos
 if st.session_state.etapas:
     if st.button("Continuar medición"):
-        mediciones = df[df["Etanol porcentaje"] == porc_inicial]
+        # Verificar si hay datos para el porcentaje seleccionado
+        mediciones = df[df["Etanol porcentaje"] == float(porc_inicial)]
         if not mediciones.empty:
             st.success("Índice de refracción encontrado:")
             st.write(mediciones[["nd indice de refraccion"]])
         else:
             st.error("Datos no encontrados para ese porcentaje.")
+    
     if st.button("Finalizar"):
         st.subheader("📈 Gráfica de Calibración")
         fig, ax = plt.subplots()
@@ -63,7 +67,7 @@ if st.session_state.etapas:
                 unsafe_allow_html=True,
             )
 
-            tabla = df[df["Porcentaje"].isin(st.session_state.etapas)]
-            tabla = tabla[["Porcentaje", "Temperatura", "Xetoh_liquido", "Xetoh_vapor"]]
+            tabla = df[df["Etanol porcentaje"].isin(st.session_state.etapas)]
+            tabla = tabla[["Etanol porcentaje", "Temperatura", "Xetoh_liquido", "Xetoh_vapor"]]
             st.write("🔬 Resultados de Destilación")
             st.dataframe(tabla.reset_index(drop=True))
