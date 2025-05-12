@@ -108,3 +108,4 @@ if st.session_state.etapas:
                 st.warning("No se encontraron datos para ese porcentaje.")
 
 
+
